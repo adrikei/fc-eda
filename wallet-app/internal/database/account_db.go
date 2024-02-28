@@ -21,7 +21,7 @@ func (a *AccountDB) FindByID(id string) (*entity.Account, error) {
 	var client entity.Client
 	account.Client = &client
 
-	stmt, err := a.DB.Prepare("Select a.id, a.client_id, a.balance, a.created_at, c.id, c.name, c.email, c.created_at FROM accounts a INNER JOIN clients c ON a.client_id = c.id WHERE a.id = ?")
+	stmt, err := a.DB.Prepare("Select a.id, a.client_id, a.balance, a.created_at, a.updated_at, c.id, c.name, c.email, c.created_at, c.updated_at FROM accounts a INNER JOIN clients c ON a.client_id = c.id WHERE a.id = ?")
 	if err != nil {
 		return nil, err
 	}
@@ -32,10 +32,12 @@ func (a *AccountDB) FindByID(id string) (*entity.Account, error) {
 		&account.Client.ID,
 		&account.Balance,
 		&account.CreatedAt,
+		&account.UpdatedAt,
 		&client.ID,
 		&client.Name,
 		&client.Email,
-		&client.CreatedAt)
+		&client.CreatedAt,
+		&client.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -43,12 +45,12 @@ func (a *AccountDB) FindByID(id string) (*entity.Account, error) {
 }
 
 func (a *AccountDB) Save(account *entity.Account) error {
-	stmt, err := a.DB.Prepare("INSERT INTO accounts (id, client_id, balance, created_at) VALUES (?, ?, ?, ?)")
+	stmt, err := a.DB.Prepare("INSERT INTO accounts (id, client_id, balance, created_at, updated_at) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(account.ID, account.Client.ID, account.Balance, account.CreatedAt)
+	_, err = stmt.Exec(account.ID, account.Client.ID, account.Balance, account.CreatedAt, account.UpdatedAt)
 	if err != nil {
 		return err
 	}
