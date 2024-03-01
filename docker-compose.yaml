@@ -16,7 +16,7 @@ services:
     image: flyway/flyway
     command: -url=jdbc:mysql://mysql -schemas=wallet -user=root -password=root -connectRetries=60 migrate
     volumes:
-      - ./flyway/sql:/flyway/sql
+      - ./database/mysql:/flyway/sql
     depends_on:
       - mysql
 
@@ -93,9 +93,32 @@ services:
       kafka-topics --bootstrap-server kafka:29092 --list
 
       echo -e 'Creating kafka topics'
-      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic clients --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic balances --replication-factor 1 --partitions 1
       kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic transactions --replication-factor 1 --partitions 1
 
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:29092 --list
       "
+
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: storage
+    volumes:
+      - .docker/postgres:/var/lib/postgresql/data
+      - ./database/postgres/setup.sql:/docker-entrypoint-initdb.d/setup.sql
+    expose:
+      - 5432
+
+  storage-app:
+    build: storage-app
+    depends_on:
+      - init-kafka-topics
+      - postgres
+      - control-center
+    environment:
+      - DATABASE_HOST=postgres
+      - KAFKA_HOST_COLON_PORT=kafka:29092
+    ports:
+      - 3003:8888

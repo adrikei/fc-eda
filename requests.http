@@ -1,5 +1,11 @@
 
+GET http://localhost:3003/balances/90f5c758-8330-4a27-aae8-c28631a9a359 HTTP/1.1
 
+###
+
+GET http://localhost:3003/balances/faa198e3-99a0-4114-8bc4-82c0ded58ec9 HTTP/1.1
+
+###
 POST http://localhost:8080/transactions HTTP/1.1
 Content-Type: application/json
 
